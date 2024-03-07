@@ -1,0 +1,11 @@
+{
+    "sftp": {
+      "hostname": "",
+      "port": 22,
+      "username": "",
+      "password": "",
+      "remote_directory": ""
+    },
+    "local_directory": "",
+    "check_interval": 25
+}
