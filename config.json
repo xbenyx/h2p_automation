@@ -1,0 +1,27 @@
+{
+    "backend":{
+        "username": "admin",
+        "password": "hashtopolis",
+        "backend_url": "https://localhost:8080/api/v2"
+    },
+    "sftp": {
+      "hostname": "Target_IP",
+      "port": 22,
+      "username": "username",
+      "password": "password",
+      "remote_directory": "/home/...."
+    },
+    "local_directory": "/home/....",
+    "multiple_hashlists_perfile": false,
+    "sftp_interval": 25,
+    "smtp_enable": false,
+    "smtp_interval": 25,
+    "smtp": {
+        "sender_email": "your_sender_email@example.com",
+        "receiver_email": "receiver_email@example.com",
+        "smtp_server": "smtp....",
+        "smtp_port": 587,
+        "smtp_username": "username",
+        "smtp_password": "password"
+    }
+}

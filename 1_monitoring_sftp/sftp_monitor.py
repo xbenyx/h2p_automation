@@ -17,7 +17,7 @@ class SftpMonitor:
         self.logger.setLevel(logging.DEBUG)
 
         # Create a rotating file handler for logs with maximum size 1MB and keep backup count as 1
-        log_file = os.path.join(os.getcwd(), "sftp_monitor_logs.txt")
+        log_file = os.path.join(os.getcwd(), "1_monitoring_sftp/sftp_monitor_logs.txt")
         file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=1)
         file_handler.setLevel(logging.DEBUG)
 
@@ -40,7 +40,7 @@ class SftpMonitor:
                     "remote_directory": "full_path"
                 },
                 "local_directory": "full_path",
-                "check_interval": 25
+                "sftp_interval": 25
             }
             with open('config.json', 'w') as f:
                 json.dump(default_config, f, indent=4)
@@ -52,11 +52,11 @@ class SftpMonitor:
 
         sftp_config = config['sftp']
         local_dir = config['local_directory']
-        check_interval = config['check_interval']
+        sftp_interval = config['sftp_interval']
 
         while True:
             self.logger.info("Checking for new files...")
-            time.sleep(check_interval)  # Sleep for check_interval seconds
+            time.sleep(sftp_interval)  # Sleep for sftp_interval seconds
 
             try:
                 # Connect to SFTP server
@@ -100,7 +100,7 @@ class SftpMonitor:
 
                 # Call the attack.py script after all new files have been processed
                 if files:
-                    subprocess.run(["python", "../2_import_attack/attack.py"])
+                    subprocess.run(["python", "2_import_attack/attack.py"])
             except Exception as e:
                 self.logger.error(f"An error occurred: {e}")
 

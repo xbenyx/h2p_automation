@@ -1,89 +1,117 @@
+import subprocess
 import os
 import json
 import requests
+import sqlite3
+import sys
+sys.path.append('./utils')
+from config_utils import load_config, load_token
+import db_utils
 
-def load_config():
-    with open('../token/config.json') as f:
-        return json.load(f)
-
-def load_token():
-    with open('../token/token.json') as f:
-        token_data = json.load(f)
-        return token_data.get('token')
+def load_path_importfiles():
+    config = load_config()
+    return config['local_directory']
 
 def load_headers():
     token = load_token()
-    return {"Authorization": f"Bearer {token}"}
+    return {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
 
-def create_custom_name(hashmode_number, string, date, index=None):
-    # Create the custom name using hashmode_number, date, and the first 10 characters of the string
-    name = f"{hashmode_number}_{date}_{string[:10]}"
+def create_custom_name(hashmode_number, hash, date, index=None, subindex=None):
+    # Create the custom name using hashmode_number, date, and the first 15 characters of the hash
+    name = ""
     if index is not None:
-        name += f"_{index}"
+        if subindex is None:
+            name += f"{index}_"
+        else:
+            name += f"{index}."
+    if subindex is not None:
+        name += f"{subindex}_"
+    name += f"{hashmode_number}_{date}_{hash[:15]}"
     return name
 
 def load_files_and_make_api_call():
     # Load data from hashmode.json
-    with open('hashmode.json', 'r') as json_file:
+    with open('2_import_attack/hashmode.json', 'r') as json_file:
         hashmode_data = json.load(json_file)
 
     # Iterate over files in the import_files folder
-    import_folder = "import_files"
+    import_folder = load_path_importfiles()
     for filename in os.listdir(import_folder):
         file_path = os.path.join(import_folder, filename)
         if os.path.isfile(file_path):
             with open(file_path, 'r') as file:
-                # Read content of the file
-                content = file.read().strip()
-
-                # Extract number and string from content
-                number, string = None, None
+                # Initialize variables
+                number = None
+                hashes = []
                 metadata_found = False
                 metadata = ""
-                for line in content.split("\n"):
-                    if line.startswith("Metadata:"):
-                        metadata_found = True
-                    elif metadata_found:
-                        metadata += line + "\n"
-                    else:
-                        number, string = line.split(' ', 1)
+                date = None
+                hashmode_number = None
+
+                # Read content of the file
+                for line in file:
+                    line = line.strip()
+                    if line:
+                        if line.startswith("Metadata:"):
+                            metadata_found = True
+                        elif metadata_found:
+                            metadata += line + "\n"
+                        else:
+                            hashes.append(line)
 
                 # Extract number from metadata
-                hashmode_number = None
                 for line in metadata.strip().split("\n"):
                     key, value = line.split(":")
                     if key.strip() == "Hashmode":
                         hashmode_number = int(value.strip())
-                        break
+                    elif key.strip() == "Date":
+                        date = value.strip()
 
                 if hashmode_number is None:
                     print("Error: Hashmode not found in metadata.")
+                    continue
+                elif date is None:
+                    print("Error: Date not found in metadata.")
+                    continue
+
+                if not hashes:
+                    print("Error: No data found.")
                     continue
 
                 # Check if number exists in hashmode_data
                 if str(hashmode_number) in hashmode_data:
                     tasks = hashmode_data[str(hashmode_number)]
 
-                    # Create a custom name
-                    hashlist_name = create_custom_name(hashmode_number, string, date)
+                    for i, hash in enumerate(hashes, start=1):
+                        # Create a custom name for the hashlist
+                        hashlist_name = create_custom_name(hashmode_number, hash, date, i)
 
-                    # Make API call to create hashlist
-                    hashlistId = create_hashlist(hashmode_number, hashlist_name, string)
+                        # Make API call to create hashlist
+                        hashlistId = create_hashlist(hashmode_number, hashlist_name, hash)
 
-                    if hashlistId is not None:
-                        # Make API call for each task
-                        task_name = create_custom_name(hashmode_number, string, date, i)
-                        for i, task in enumerate(tasks, start=1):
-                            # Make API call using task data
-                            create_task(task, task_name, hashlistId, string)
+                        if hashlistId is not None:
+                            # Make API call for each task
+                            for j, task in enumerate(tasks, start=1):
+                                # Create a custom name for the task
+                                task_name = create_custom_name(hashmode_number, hash, date, i, j)
+                                # Make API call using task data
+                                create_task(task, task_name, hashlistId, hash)
                 else:
                     print(f"No matching data found in hashmode.json for number {hashmode_number}")
 
-def create_hashlist(hashmode, name, string):
+def create_hashlist(hashmode, name, hash):
     config = load_config()
     headers = load_headers()
     # API endpoint
-    url = config.get('backend_url') + '/hashlists'
+    if 'backend' in config and 'backend_url' in config['backend']:
+        backend_url = config['backend']['backend_url']
+    else:
+        backend_url = ''  # Or any default value you prefer
+
+    url = backend_url + '/ui/hashlists'
     # Data for the API call
     data = {
         "name": name,
@@ -96,8 +124,8 @@ def create_hashlist(hashmode, name, string):
         "useBrain": False,
         "brainFeatures": 3,
         "notes": "",
-        "sourceType": "import",
-        "sourceData": string,
+        "sourceType": "paste",
+        "sourceData": hash,
         "hashCount": 0,
         "isArchived": False,
         "isSecret": True
@@ -107,18 +135,32 @@ def create_hashlist(hashmode, name, string):
     # Check if the API call was successful
     if response.status_code == 201:
         # Extract hashlistId from the response JSON
+        print("Created Hashlist Sucessful:", response.json())
         response_data = response.json()
-        hashlistId = response_data.get('id')
+        hashlistId = response_data.get('_id')
+        # Save data to the database
+        save_to_database(name, hashlistId, hash, hashmode)
         return hashlistId
+    elif response.status_code == 401:
+        # Handle 401 Unauthorized status code
+        # Run token manager script
+        subprocess.run(["python", "token/token_manager.py"])
+        # Re-run monitor_hashlists after token_manager completes
+        create_hashlist()
     else:
         print(f"Failed to create hashlist. Status code: {response.status_code}, Reason: {response.reason}")
         return None
 
-def create_task(task, name, hashlistId, string):
+def create_task(task, name, hashlistId, hash):
     config = load_config()
     headers = load_headers()
     # API endpoint
-    url = config.get('backend_url') + '/tasks'
+    if 'backend' in config and 'backend_url' in config['backend']:
+        backend_url = config['backend']['backend_url']
+    else:
+        backend_url = ''  # Or any default value you prefer
+
+    url = backend_url + '/ui/tasks'
     # Data for the API call
     data = {
         "taskName": name,
@@ -144,13 +186,39 @@ def create_task(task, name, hashlistId, string):
         "useNewBench": task["useNewBench"],
         "files": task["files"]
     }
+    print("Request Data:")
+    print(json.dumps(data, indent=2))
     # Make the POST request
     response = requests.post(url, headers=headers, json=data)
     # Check if the API call was successful
     if response.status_code == 201:
-        print("API call successful:", response.json())
+        print("Created Task Sucessful:", response.json())
     else:
         print(f"API call failed. Status code: {response.status_code}, Reason: {response.reason}")
 
+def save_to_database(name, hashlistId, hash, hashmode):
+    try:
+        cursor = conn.cursor()
+        # Create a table if it doesn't exist
+        cursor.execute('''CREATE TABLE IF NOT EXISTS Hashlists
+                          (Name TEXT, HashlistId TEXT, Hash TEXT, Hashmode INTEGER, Cracked INTEGER)''')
+        # Insert data into the table
+        # Cracked value 0 = No cracked, 1 = Partially cracked, 2 = Fully cracked
+        cursor.execute("INSERT INTO Hashlists VALUES (?, ?, ?, ?, ?)", (name, hashlistId, hash, hashmode, 0))
+        # Commit changes and close connection
+        conn.commit()
+        conn.close()
+        print("Data saved to the database.")
+    except sqlite3.Error as e:
+        print("SQLite error:", e)
+
 if __name__ == "__main__":
-    load_files_and_make_api_call()
+    try:
+        conn = db_utils.establish_connection()
+        load_files_and_make_api_call()
+    except Exception as e:
+        print("An error occurred:", e)
+    finally:
+        if 'conn' in locals():
+            db_utils.close_connection(conn)
+

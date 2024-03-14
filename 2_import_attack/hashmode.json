@@ -1,5 +1,5 @@
 {
-    "55": [
+    "0": [
         {
             "taskName": "",
             "notes": "",
@@ -18,7 +18,7 @@
             "staticChunks": 0,
             "chunkSize": 0,
             "forcePipe": false,
-            "preprocessorId": null,
+            "preprocessorId": 0,
             "preprocessorCommand": "",
             "isSmall": false,
             "useNewBench": true,
@@ -42,7 +42,7 @@
             "staticChunks": 0,
             "chunkSize": 0,
             "forcePipe": false,
-            "preprocessorId": null,
+            "preprocessorId": 0,
             "preprocessorCommand": "",
             "isSmall": false,
             "useNewBench": true,
@@ -68,7 +68,7 @@
             "staticChunks": 0,
             "chunkSize": 0,
             "forcePipe": false,
-            "preprocessorId": null,
+            "preprocessorId": 0,
             "preprocessorCommand": "",
             "isSmall": false,
             "useNewBench": true,

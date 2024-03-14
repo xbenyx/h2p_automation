@@ -5,7 +5,7 @@ import os
 import base64
 
 class TokenManager:
-    def __init__(self, config_file='config.json', token_file='token.json'):
+    def __init__(self, config_file=os.path.abspath('config.json'), token_file=os.path.abspath('token/token.json')):
         self.config_file = config_file
         self.token_file = token_file
         self.load_token_from_file()
@@ -14,7 +14,8 @@ class TokenManager:
     def load_config(self):
         if os.path.exists(self.config_file):
             with open(self.config_file) as f:
-                self.config_data = json.load(f)
+                config_data = json.load(f)
+                self.config_data = config_data.get('backend', {})  # Extract backend data
         else:
             self.config_data = {
                 "username": "admin",
@@ -23,7 +24,6 @@ class TokenManager:
             }
             self.save_config_to_file()  # Save default config if file doesn't exist
 
-
     def load_token_from_file(self):
         if os.path.exists(self.token_file):
             with open(self.token_file) as f:
@@ -31,6 +31,10 @@ class TokenManager:
         else:
             self.token_data = {"token": None, "expires": None}
             self.save_token_to_file()  # Save initial token data if file doesn't exist
+
+    def save_config_to_file(self):
+        with open(self.config_file, 'w') as f:
+            json.dump({"backend": self.config_data}, f)  # Save only the backend part
 
     def save_token_to_file(self):
         with open(self.token_file, 'w') as f:
