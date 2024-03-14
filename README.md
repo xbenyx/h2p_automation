@@ -1,10 +1,38 @@
-# SFTP Hashtopolis Attack
+# SFTP Hashtopolis Automation
 
-Project description goes here.
+This basic tool uses Hashtopolis API V2 to streamline the creation of hashlists and attacks (tasks) by simply dropping hashes into a designated remote folder.
+
+## Usage Examples
+
+### Scenario 1: Automated Hashlist Creation
+
+1. **Drop Hashes into Remote Directory**: Place a text file containing hashes in the designated remote directory (`remote_directory_get`). The tool will automatically detect and process the file.
+
+2. **Automatic Hashlist Creation**: Upon detecting the file, the tool will read the hashes and generate a corresponding hashlist in Hashtopolis using the provided configuration settings.
+
+3. **Task Generation**: After creating the hashlist, the tool will analyze the hashmode and initiate the appropriate attack tasks according to the predefined templates in the `hashmode.json` configuration file.
+
+### Scenario 2: Attack Task Execution
+
+1. **Hashlist Cracking**: Once the attack tasks are created, Hashtopolis will begin cracking the hashes using the specified attack methods and resources.
+
+2. **Status Monitoring**: The tool continuously monitors the status of the attack tasks and hashlists in Hashtopolis.
+
+3. **Email Notifications (Optional)**: If configured, the tool can send email notifications at specified intervals to update users on the progress and status of the cracking operations.
+
+### Scenario 3: Post-Cracking Actions
+
+1. **Result Reporting**: Upon successful cracking of hashes, the tool generates a report containing the cracked passwords and other relevant information.
+
+2. **File Generation**: The tool creates a text file with the cracked passwords and places it in the designated remote directory (`remote_directory_post`).
+
+3. **Additional Processing**: Users can further process the cracked passwords file as needed for additional analysis or actions.
 
 # Automatic Setup and Running
 
 This project provides a convenient way to automatically install dependencies and start the application using the `__init__.py` file. By running this file, users can quickly set up the environment and launch the application without manually installing dependencies.
+
+The application must be installed on the machine running Hashtopolis. Please refer to the Hashtopolis documentation for instructions on enabling API v2.
 
 ## Installation and Setup
 
@@ -37,7 +65,8 @@ The correct configuration is crucial for the proper functioning of this automati
         "port": 22,
         "username": "username",
         "password": "password",
-        "remote_directory": "/home/...."
+        "remote_directory_get": "/home/....",
+        "remote_directory_post": "/home/...."
     },
     "local_directory": "/home/....",
     "multiple_hashlists_perfile": false,
@@ -55,18 +84,60 @@ The correct configuration is crucial for the proper functioning of this automati
 }
 ```
 
-- **backend**: Configuration details for the backend server. Includes username, password, and URL.
-- **sftp**: Configuration details for the SFTP server. Includes hostname, port, username, password, and remote directory.
+Here's the explanation of the keys and subkeys in the provided JSON configuration:
+
+- **backend**: Configuration details for the backend server.
+  - *username*: Username for authentication.
+  - *password*: Password for authentication.
+  - *backend_url*: URL of the backend server.
+
+- **sftp**: Configuration details for the SFTP server.
+  - *hostname*: Hostname or IP address of the SFTP server.
+  - *port*: Port number for the SFTP connection.
+  - *username*: Username for SFTP authentication.
+  - *password*: Password for SFTP authentication.
+  - *remote_directory_get*: Remote directory path for fetching files.
+  - *remote_directory_post*: Remote directory path for posting files.
+
 - **local_directory**: Local directory path for file operations.
-- **multiple_hashlists_perfile**: Boolean indicating whether multiple hashlists are allowed per file. i.e if its true it will read each file and create one hashlist for each hash
+
+- **multiple_hashlists_perfile**: Boolean indicating whether multiple hashlists are allowed per file. If true, each file will create one hashlist for each hash.
+
 - **sftp_interval**: Interval in seconds for SFTP operations.
+
 - **smtp_enable**: Boolean indicating whether SMTP email notifications are enabled.
-- **smtp_interval**: Interval in seconds for SMTP operations. The time for check changes and report back.
-- **smtp**: Configuration details for SMTP email. Includes sender email, receiver email, SMTP server details, username, and password.
+
+- **smtp_interval**: Interval in seconds for SMTP operations. This determines the time interval for checking changes and sending reports.
+
+- **smtp**: Configuration details for SMTP email.
+  - *sender_email*: Email address of the sender for outgoing emails.
+  - *receiver_email*: Email address of the receiver for incoming emails.
+  - *smtp_server*: SMTP server address for sending emails.
+  - *smtp_port*: Port number for the SMTP server.
+  - *smtp_username*: Username for SMTP authentication.
+  - *smtp_password*: Password for SMTP authentication.
 
 Ensure that you provide accurate values for each key in the configuration file to avoid errors and ensure smooth operation of the project.
 
-4. **Run the `__init__.py` File**: Execute the `__init__.py` file to automatically install dependencies and start the application. Use the following command:
+**Important**: The SFTP permissions should be configured to allow read access to `remote_directory_get` for read and delete files, and write access to `remote_directory_post` for creating files.
+
+Here's how you might set permissions for `remote_directory_get` and `remote_directory_post`:
+
+```bash
+# Linux system
+chmod +rd remote_directory_get && chmod +w remote_directory_post
+
+# Windows system
+icacls remote_directory_get /grant Everyone:(R,D) && icacls remote_directory_post /grant Everyone:(W)
+
+# Mac System
+chmod +rd remote_directory_get && chmod +w remote_directory_post
+```
+These commands ensure that the SFTP user has the necessary permissions to perform read and delete operations in `remote_directory_get` and write operations in `remote_directory_post`. Adjust permissions according to your specific setup and security requirements.
+
+4. **Config Hashmode**: Go to the location 2_import_attack and configure the hashmode.json. You can add multiple task templates for each hashmode. ie. The app will read the file and create a hashlist, then read the hashmode.json and create 1, 2 or x tasks.
+
+5. **Run the `__init__.py` File**: Execute the `__init__.py` file to automatically install dependencies and start the application. Use the following command:
 
     ```bash
     python __init__.py
@@ -76,15 +147,81 @@ This command will trigger the setup process, which includes installing dependenc
 
 ## Usage
 
-Once the setup process is complete, the application will be launched automatically. You can now interact with the application as usual.
+Once the setup process is complete, the application will be launched automatically.
+
+Just place the files in the remote_directory_get, the app will download the files. Once is a crack it will create a file with the hashes in remote_directory_post.
+
+- **remote_directory_get**: The file needs to be in .txt format and contain the below structure, for example:
+
+  ```plaintext
+  7e866b1d0a354f31d62b6055a8742473ee71bfb5
+  1459794da58333d4a2a949f84b882f92e957a356
+  dfd2ed72dd10d7bcf42f6ce4625266d78575010c
+
+  Metadata:
+  Date: 2024-07-06
+  Hashmode: 100
+  ```
+
+- **remote_directory_post**: The file will be created with the extension .txt and structure as below, for example:
+
+  ```plaintext
+  Hello
+  World
+  Still not cracked
+
+  Metadata:
+  Date received: 2024-07-06
+  Status: Partially cracked (Still on progress)
+  Hashmode: 100
+  ```
 
 ## Additional Notes
 
 - **Dependencies**: The `__init__.py` file utilizes `pip` to install project dependencies listed in the `requirements.txt` file. Make sure to keep this file up to date with any new dependencies required by the project.
 
-- **Customization**: If you need to customize the setup process or the application launch behavior, you can modify the `__init__.py` file accordingly. You can add additional setup steps or change the way the application is launched based on your specific requirements.
+- **Folder Structure**: Below is the folder structure.
 
-- **Error Handling**: In case of any errors during the setup or application launch process, error messages will be displayed in the terminal. Make sure to review these messages for troubleshooting purposes.
+```
+h2p_automation/
+│
+├── 1_monitoring_sftp/
+├── 2_import_attack/
+├── 3_reporting/
+├── database/
+├── import_files/
+├── logs/
+├── token/
+├── util/
+│
+└── __init__.py
+```
+
+- **`1_monitoring_sftp/`**: Contains scripts and resources for monitoring SFTP activity.
+
+- **`2_import_attack/`**: Dedicated to importing attack-related data and resources.
+
+- **`3_reporting/`**: Holds scripts and tools for generating reports based on collected data.
+
+- **`database/`**: Stores the project's database files and related scripts.
+
+- **`import_files/`**: Contains files and data to be imported or processed by the application.
+
+- **`logs/`**: Stores log files generated by the application.
+
+- **`token/`**: Holds resources related to authentication and authorization.
+
+- **`util/`**: Contains utility scripts and modules used across the application.
+
+- **`__init__.py`**: Marks the directory as a Python package and may contain initialization code.
+
+This provides a visual representation of the project's folder structure along with an explanation of each directory's purpose.
+
+- **Error Handling**: In case of any errors during the setup or application launch process, error messages will be displayed in the terminal, and some errors stored in the logs folder.
+
+## On Development
+
+Currently SMTP is still on development, it works but a logic needs to be implement once a hashlist is cracked/
 
 ## Contributing
 
@@ -92,7 +229,7 @@ Hey there! 👋 We're thrilled that you're considering contributing to our proje
 
 ### How Can I Contribute?
 
-1. **Report Bugs**: If you come across any bugs or issues while using our project, please report them on our [Issue Tracker](link-to-issue-tracker). Be sure to include detailed information about the problem and steps to reproduce it.
+1. **Report Bugs**: If you come across any bugs or issues while using our project, please report them. Be sure to include detailed information about the problem and steps to reproduce it.
 
 2. **Submit Feature Requests**: Have a great idea for a new feature or improvement? Let us know by opening an issue. We'd love to hear your suggestions and feedback!
 

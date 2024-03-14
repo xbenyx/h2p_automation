@@ -17,7 +17,7 @@ class SftpMonitor:
         self.logger.setLevel(logging.DEBUG)
 
         # Create a rotating file handler for logs with maximum size 1MB and keep backup count as 1
-        log_file = os.path.join(os.getcwd(), "1_monitoring_sftp/sftp_monitor_logs.txt")
+        log_file = os.path.join(os.getcwd(), "logs/sftp_monitor_logs.txt")
         file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=1)
         file_handler.setLevel(logging.DEBUG)
 
@@ -35,11 +35,12 @@ class SftpMonitor:
                 "sftp": {
                     "hostname": "localhost",
                     "port": 22,
-                    "username": "admin",
-                    "password": "",
-                    "remote_directory": "full_path"
+                    "username": "user",
+                    "password": "pass",
+                    "remote_directory_get": "/home/..full_path",
+                    "remote_directory_post":  "/home/..full_path",
                 },
-                "local_directory": "full_path",
+                "local_directory": "/home/..full_path",,
                 "sftp_interval": 25
             }
             with open('config.json', 'w') as f:
@@ -66,7 +67,7 @@ class SftpMonitor:
 
                 # Retrieve the list of files from the remote directory
                 self.logger.info("Contents of remote directory:")
-                remote_files = sftp.listdir(sftp_config['remote_directory'])
+                remote_files = sftp.listdir(sftp_config['remote_directory_get'])
                 self.logger.info(remote_files)
 
                 # Check for new files in the local directory
@@ -76,7 +77,7 @@ class SftpMonitor:
                 # Iterate over each file in the remote directory
                 for file in remote_files:
                     if file not in self.imported_files:  # Check if file has not been imported yet
-                        remote_path = sftp_config['remote_directory'] + "/" + file
+                        remote_path = sftp_config['remote_directory_get'] + "/" + file
                         local_path = os.path.join(local_dir, file)
                         self.logger.info(f"Downloading file: {file}")
 
