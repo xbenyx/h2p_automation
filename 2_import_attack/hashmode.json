@@ -4,7 +4,7 @@
             "taskName": "",
             "notes": "",
             "hashlistId": 7,
-            "attackCmd": "#HL# Hashtop.test",
+            "attackCmd": "#HL# -a3 a?a?a?a?a?a?a",
             "priority": 2,
             "maxAgents": 0,
             "chunkTime": 600,
@@ -22,7 +22,7 @@
             "preprocessorCommand": "",
             "isSmall": false,
             "useNewBench": true,
-            "files": [1]
+            "files": []
         },
         {
             "taskName": "",

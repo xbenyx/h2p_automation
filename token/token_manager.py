@@ -41,9 +41,19 @@ class TokenManager:
             json.dump(self.token_data, f)
 
     def get_token(self):
-        if self.token_data['token'] is None or self.is_token_expired():
-            self.refresh_token()
-        return self.token_data['token']
+        try:
+            if self.token_data.get('token') is None or self.is_token_expired():
+                self.refresh_token()
+
+            # Check if token is None or empty
+            if not self.token_data.get('token'):
+                print("Error: Token is missing or empty.")
+                return None
+
+            return self.token_data['token']
+        except KeyError:
+            print("Error: 'token' key not found in token_data.")
+            return None
 
     def is_token_expired(self):
         if self.token_data['expires'] is not None:

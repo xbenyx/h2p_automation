@@ -1,0 +1,12 @@
+# Ignore database/report.db
+database/report.db
+
+# Ignore logs/sftp_monitor_logs.txt
+logs/sftp_monitor_logs.txt
+
+# Ignore token/token.json
+token/token.json
+token.json
+
+# Ignore config.json in the root directory
+config.json

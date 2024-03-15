@@ -33,6 +33,7 @@ def create_custom_name(hashmode_number, hash, date, index=None, subindex=None):
     return name
 
 def load_files_and_make_api_call():
+    config = load_config()
     # Load data from hashmode.json
     with open('2_import_attack/hashmode.json', 'r') as json_file:
         hashmode_data = json.load(json_file)
@@ -61,7 +62,6 @@ def load_files_and_make_api_call():
                             metadata += line + "\n"
                         else:
                             hashes.append(line)
-
                 # Extract number from metadata
                 for line in metadata.strip().split("\n"):
                     key, value = line.split(":")
@@ -81,24 +81,43 @@ def load_files_and_make_api_call():
                     print("Error: No data found.")
                     continue
 
+                # Join hashes into a single string if not combined
+                if not config.get("multiple_hashlists_perfile", True):
+                    hashes_str = '\n'.join(hashes)
                 # Check if number exists in hashmode_data
                 if str(hashmode_number) in hashmode_data:
                     tasks = hashmode_data[str(hashmode_number)]
 
-                    for i, hash in enumerate(hashes, start=1):
+                    if config.get("multiple_hashlists_perfile", True):
+                        for i, hash in enumerate(hashes, start=1):
+                            # Create a custom name for the hashlist
+                            hashlist_name = create_custom_name(hashmode_number, hash, date, i)
+
+                            # Make API call to create hashlist
+                            hashlistId = create_hashlist(hashmode_number, hashlist_name, hash)
+
+                            if hashlistId is not None:
+                                # Make API call for each task
+                                for j, task in enumerate(tasks, start=1):
+                                    # Create a custom name for the task
+                                    task_name = create_custom_name(hashmode_number, hash, date, i, j)
+                                    # Make API call using task data
+                                    create_task(task, task_name, hashlistId, hash)
+                    else:
                         # Create a custom name for the hashlist
-                        hashlist_name = create_custom_name(hashmode_number, hash, date, i)
+                        hashlist_name = create_custom_name(hashmode_number, hashes_str, date)
 
                         # Make API call to create hashlist
-                        hashlistId = create_hashlist(hashmode_number, hashlist_name, hash)
+                        hashlistId = create_hashlist(hashmode_number, hashlist_name, hashes_str)
 
                         if hashlistId is not None:
                             # Make API call for each task
                             for j, task in enumerate(tasks, start=1):
                                 # Create a custom name for the task
-                                task_name = create_custom_name(hashmode_number, hash, date, i, j)
+                                task_name = create_custom_name(hashmode_number, '', date, subindex=j)
                                 # Make API call using task data
-                                create_task(task, task_name, hashlistId, hash)
+                                create_task(task, task_name, hashlistId, hashes_str)
+
                 else:
                     print(f"No matching data found in hashmode.json for number {hashmode_number}")
 
@@ -186,8 +205,8 @@ def create_task(task, name, hashlistId, hash):
         "useNewBench": task["useNewBench"],
         "files": task["files"]
     }
-    print("Request Data:")
-    print(json.dumps(data, indent=2))
+    #print("Request Data:")
+    #print(json.dumps(data, indent=2))
     # Make the POST request
     response = requests.post(url, headers=headers, json=data)
     # Check if the API call was successful

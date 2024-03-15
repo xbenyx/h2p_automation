@@ -4,23 +4,23 @@ This basic tool uses Hashtopolis API V2 to streamline the creation of hashlists 
 
 ## Usage Examples
 
-### Scenario 1: Automated Hashlist Creation
+### 1: Automated Hashlist Creation
 
 1. **Drop Hashes into Remote Directory**: Place a text file containing hashes in the designated remote directory (`remote_directory_get`). The tool will automatically detect and process the file.
 
 2. **Automatic Hashlist Creation**: Upon detecting the file, the tool will read the hashes and generate a corresponding hashlist in Hashtopolis using the provided configuration settings.
 
-3. **Task Generation**: After creating the hashlist, the tool will analyze the hashmode and initiate the appropriate attack tasks according to the predefined templates in the `hashmode.json` configuration file.
+3. **Task Generation**: After creating the hashlist, the tool will analyze the hashmode and initiate the appropriate attack(tasks) according to the predefined templates in the `hashmode.json` configuration file.
 
-### Scenario 2: Attack Task Execution
+### 2: Attack Task Execution
 
-1. **Hashlist Cracking**: Once the attack tasks are created, Hashtopolis will begin cracking the hashes using the specified attack methods and resources.
+1. **Hashlist Cracking**: Once the attack(tasks) are created, Hashtopolis will begin cracking the hashes using the specified attack methods and resources.
 
-2. **Status Monitoring**: The tool continuously monitors the status of the attack tasks and hashlists in Hashtopolis.
+2. **Status Monitoring**: The tool continuously monitors the status of the hashlists, waiting for any crack.
 
 3. **Email Notifications (Optional)**: If configured, the tool can send email notifications at specified intervals to update users on the progress and status of the cracking operations.
 
-### Scenario 3: Post-Cracking Actions
+### 3: Post-Cracking Actions
 
 1. **Result Reporting**: Upon successful cracking of hashes, the tool generates a report containing the cracked passwords and other relevant information.
 
@@ -32,7 +32,7 @@ This basic tool uses Hashtopolis API V2 to streamline the creation of hashlists 
 
 This project provides a convenient way to automatically install dependencies and start the application using the `__init__.py` file. By running this file, users can quickly set up the environment and launch the application without manually installing dependencies.
 
-The application must be installed on the machine running Hashtopolis. Please refer to the Hashtopolis documentation for instructions on enabling API v2.
+The application can be installed in any machine, as soon as the machine has access to Hashtopolis(offline servers). **Important**: Please refer to the Hashtopolis documentation for instructions on how to enabling the API v2.
 
 ## Installation and Setup
 
@@ -135,7 +135,7 @@ chmod +rd remote_directory_get && chmod +w remote_directory_post
 ```
 These commands ensure that the SFTP user has the necessary permissions to perform read and delete operations in `remote_directory_get` and write operations in `remote_directory_post`. Adjust permissions according to your specific setup and security requirements.
 
-4. **Config Hashmode**: Go to the location 2_import_attack and configure the hashmode.json. You can add multiple task templates for each hashmode. ie. The app will read the file and create a hashlist, then read the hashmode.json and create 1, 2 or x tasks.
+4. **Config Hashmode**: Task templates need to be added to match your the hashmode from the hashes in the text file. Go to the location 2_import_attack and configure the hashmode.json. You can add multiple task templates for each hashmode. ie. The app will read the file and create a hashlist, then read the hashmode.json and create 1, 2 or x tasks.
 
 5. **Run the `__init__.py` File**: Execute the `__init__.py` file to automatically install dependencies and start the application. Use the following command:
 
