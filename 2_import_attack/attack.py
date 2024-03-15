@@ -114,7 +114,7 @@ def load_files_and_make_api_call():
                             # Make API call for each task
                             for j, task in enumerate(tasks, start=1):
                                 # Create a custom name for the task
-                                task_name = create_custom_name(hashmode_number, '', date, subindex=j)
+                                task_name = create_custom_name(hashmode_number, hashes_str, date, subindex=j)
                                 # Make API call using task data
                                 create_task(task, task_name, hashlistId, hashes_str)
 
@@ -149,6 +149,7 @@ def create_hashlist(hashmode, name, hash):
         "isArchived": False,
         "isSecret": True
     }
+    #print(json.dumps(data, indent=4))
     # Make the POST request
     response = requests.post(url, headers=headers, json=data)
     # Check if the API call was successful
@@ -215,15 +216,15 @@ def create_task(task, name, hashlistId, hash):
     else:
         print(f"API call failed. Status code: {response.status_code}, Reason: {response.reason}")
 
-def save_to_database(name, hashlistId, hash, hashmode):
+def save_to_database(name, hashlistId, hashmode):
     try:
         cursor = conn.cursor()
         # Create a table if it doesn't exist
         cursor.execute('''CREATE TABLE IF NOT EXISTS Hashlists
-                          (Name TEXT, HashlistId TEXT, Hash TEXT, Hashmode INTEGER, Cracked INTEGER)''')
+                          (Name TEXT, HashlistId TEXT, Hashmode INTEGER, Status INTEGER, Cracked INTEGER, hashCount Integer)''')
         # Insert data into the table
         # Cracked value 0 = No cracked, 1 = Partially cracked, 2 = Fully cracked
-        cursor.execute("INSERT INTO Hashlists VALUES (?, ?, ?, ?, ?)", (name, hashlistId, hash, hashmode, 0))
+        cursor.execute("INSERT INTO Hashlists VALUES (?, ?, ?, ?, ?, ?)", (name, hashlistId, hashmode, 0, 0, 0))
         # Commit changes and close connection
         conn.commit()
         conn.close()

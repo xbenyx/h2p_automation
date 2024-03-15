@@ -48,7 +48,8 @@ class TokenManager:
             # Check if token is None or empty
             if not self.token_data.get('token'):
                 print("Error: Token is missing or empty.")
-                return None
+                print("Refreshing...")
+                return self.refresh_token()
 
             return self.token_data['token']
         except KeyError:

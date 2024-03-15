@@ -166,15 +166,17 @@ Just place the files in the remote_directory_get, the app will download the file
 - **remote_directory_post**: The file will be created with the extension .txt and structure as below, for example:
 
   ```plaintext
-  Hello
-  World
-  Still not cracked
+  hash1
+  hash2
+  hash3
 
   Metadata:
-  Date received: 2024-07-06
-  Status: Partially cracked (Still on progress)
-  Hashmode: 100
+  Name: name
+  Status: status
+  Hashmode: hashlistid
   ```
+
+See additional notes to understand naming.
 
 ## Additional Notes
 
@@ -218,6 +220,42 @@ h2p_automation/
 This provides a visual representation of the project's folder structure along with an explanation of each directory's purpose.
 
 - **Error Handling**: In case of any errors during the setup or application launch process, error messages will be displayed in the terminal, and some errors stored in the logs folder.
+
+**Naming Convention:**
+
+- **Hashlist Naming Format**:
+  - Each hashlist follows the format: `{Hashmode}_{File_Date}_{First_15chars_Hash}`.
+    - `{Hashmode}`: The identifier for the hash algorithm used.
+    - `{File_Date}`: The date in the file metadata.
+    - `{First_15chars_Hash}`: The first 15 characters of the hash value.
+
+- **Task Naming Format**:
+  - Each task follows the format: `{Index}_{Hashmode}_{File_Date}_{First_15chars_Hash}`.
+    - `{Index}`: An optional index indicating the sequence of the hash within the file, if applicable.
+    - `{Hashmode}`: The identifier for the hash algorithm used.
+    - `{File_Date}`: The date when the file was processed.
+    - `{First_15chars_Hash}`: The first 15 characters of the hash value.
+
+**Example:**
+
+Suppose we have a hashlist generated from a file containing Sha1 hashes, processed on July 6, 2024.
+
+- **Hashlist Name**:
+  - Hashmode: 100
+  - File Date: 2024-07-06
+  - First 15 Characters of Hash: `b89eaac7e61417341b710b727768294d0e6a277b`
+  - **Hashlist Name**: `100_2024-07-06_b89eaac7e614173`
+
+Now, let's consider a task created for this hashlist:
+
+- **Task Name**:
+  - Index: 1 (assuming it's the first hash in the file)
+  - Hashmode: 100
+  - File Date: 2024-07-06
+  - First 15 Characters of Hash: `b89eaac7e61417341b710b727768294d0e6a277b`
+  - **Task Name**: `1_100_2024-07-06_b89eaac7e614173`
+
+The naming convention tries to help identify what hashlists and tasks are being processed using this tool and give an easy hint.
 
 ## On Development
 

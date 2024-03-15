@@ -53,13 +53,19 @@ def start_sftp_monitor():
     except subprocess.CalledProcessError as e:
         raise Exception("Failed to start SFTP monitor") from e
 
-def start_smtp_monitor():
-    # Start SMTP monitor script
+def start_monitor():
+    # Start monitor script
     try:
         subprocess.check_call(["python", "3_reporting/monitor.py"])
     except subprocess.CalledProcessError as e:
-        raise Exception("Failed to start SMTP monitor") from e
+        raise Exception("Failed to start monitoring") from e
 
+def start_smtp_monitor():
+    # Start SMTP monitor script
+    try:
+        subprocess.check_call(["python", "3_reporting/email_monitor.py"])
+    except subprocess.CalledProcessError as e:
+        raise Exception("Failed to start SMTP monitor") from e
 
 def test_attack():
     # Testin attack
@@ -72,7 +78,7 @@ if __name__ == "__main__":
     try:
         install_dependencies()
         install_database()
-        start_token_manager()
+        #start_token_manager()
         #start_sftp_monitor()
         config = load_config()  # Load configuration
 
@@ -80,7 +86,8 @@ if __name__ == "__main__":
             start_smtp_monitor()  # Start SMTP monitor if smtp_enable is True
 
         # Other tasks
-        test_attack()
+        #test_attack()
+        start_monitor()
     except Exception as e:
         print("An error occurred:", e)
 

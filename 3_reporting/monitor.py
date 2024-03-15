@@ -7,44 +7,26 @@ import sys
 sys.path.append('./utils')
 from config_utils import load_config, load_token
 import db_utils
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from configparser import ConfigParser
 
-def read_html_template(file_path, message):
-    with open(file_path, 'r') as file:
-        html_content = file.read()
-        html_content = html_content.replace("{message}", message)
-        return html_content
-
-def send_email(subject, message):
+def create_file(name, status, hashlistid, hashes):
+    # Load config
     config = load_config()
-    smtp_config = config.get('smtp')
-    sender_email = smtp_config.get('sender_email')
-    receiver_email = smtp_config.get('receiver_email')
-    smtp_server = smtp_config.get('smtp_server')
-    smtp_port = smtp_config.get('smtp_port')
-    smtp_username = smtp_config.get('smtp_username')
-    smtp_password = smtp_config.get('smtp_password')
+    # Folder remote directory for creating files
+    remote_directory_post = config.get('sftp', {}).get('remote_directory_post')
+    # Create the file name
+    filename = f"{name}_{status}_{hashlistid}.txt"
 
-    html_content = read_html_template('3_reporting/email_template.html', message)
+    # Write hashes to the file
+    # with open(filename, 'w') as file:
+    #     for hash_value in hashes:
+    #         file.write(hash_value + '\n')
 
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(html_content, 'html'))
-
-    try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        print("Email sent successfully")
-    except Exception as e:
-        print("Failed to send email:", e)
-    finally:
-        server.quit()
+    #     # Write metadata to the file
+    #     file.write("\nMetadata:\n")
+    #     file.write(f"Name: {name}\n")
+    #     file.write(f"Status: {status}\n")
+    #     file.write(f"Hashmode: {hashlistid}\n")
 
 # Function to monitor cracked hashlists
 def monitor_hashlists(conn):
@@ -54,22 +36,39 @@ def monitor_hashlists(conn):
     cursor = conn.cursor()
 
     # Fetch rows from Hashlists table where Cracked is 0 or 1
-    cursor.execute("SELECT * FROM Hashlists WHERE HashlistId > 1")
+    # cursor.execute("SELECT * FROM Hashlists WHERE Status IN (0,1))
+    cursor.execute("SELECT * FROM Hashlists WHERE Cracked IN (0,1) AND HashlistId = 162")
     rows = cursor.fetchall()
-
+    print(rows)
     # Iterate over the rows and make API calls
     for row in rows:
         hashlist_id = row[1]  # Assuming hashlist_id is at index 1, adjust accordingly
         url = config['backend']['backend_url'] + f'/ui/hashlists/{hashlist_id}'
+        params = {'expand': 'hashes'}
         headers = {'Authorization': f'Bearer {load_token()}'}
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json()
+            print(data)
+            name_db = row[0]
+            cracked_db = row[4]
             cracked = data.get('cracked')
-            send_email("Hashlist Cracked", f"Hashlist with ID {hashlist_id} has been cracked.")
-            if cracked == 1:
-                # Send email notification
-                send_email("Hashlist Cracked", f"Hashlist with ID {hashlist_id} has been cracked.")
+            hashes = data.get('hashes', [])
+            print(hashes)
+            plaintext_hashes = []
+
+            for hash_data in hashes:
+                if hash_data.get('isCracked', False):
+                    plaintext_hashes.append(hash_data.get('hash', ''))
+
+            print("Plaintext Hashes:", plaintext_hashes)
+
+            # if cracked > cracked_db:
+            if cracked >= cracked_db:
+               print('here')
+               # Create New file
+               create_file(name_db, 'status', hashlist_id, hash)
+
         elif response.status_code == 401:
             # Handle 401 Unauthorized status code
             # Run token manager script
