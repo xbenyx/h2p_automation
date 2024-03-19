@@ -2,27 +2,27 @@
     "backend":{
         "username": "admin",
         "password": "hashtopolis",
-        "backend_url": "https://localhost:8080/api/v2"
+        "backend_url": "https://crackz.one/api/v2"
     },
     "sftp": {
-      "hostname": "Target_IP",
+      "hostname": "192.168.0.162",
       "port": 22,
-      "username": "username",
-      "password": "password",
-      "remote_directory_get": "/home/...../import_folder_get",
-      "remote_directory_post": "/home/..../import_folder_post"
+      "username": "xbenyx",
+      "password": "B+-5131196",
+      "remote_directory_get": "/home/xbenyx/Documents/import_folder",
+      "remote_directory_post": "/home/xbenyx/Documents/import_folder"
     },
-    "local_directory": "/home/....",
+    "local_directory": "C:/Users/Ebidem/Documents/Europol/Operations/h2p_automation/import_files",
     "multiple_hashlists_perfile": false,
     "sftp_interval": 25,
     "smtp_enable": false,
     "smtp_interval": 25,
     "smtp": {
         "sender_email": "your_sender_email@example.com",
-        "receiver_email": "receiver_email@example.com",
-        "smtp_server": "smtp....",
+        "receiver_email": "ouroborosfc@gmail.com",
+        "smtp_server": "sandbox.smtp.mailtrap.io",
         "smtp_port": 587,
-        "smtp_username": "username",
-        "smtp_password": "password"
+        "smtp_username": "bb5ca29c6aa133",
+        "smtp_password": "96605fb6b73979"
     }
 }
