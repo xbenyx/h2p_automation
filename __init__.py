@@ -78,8 +78,8 @@ if __name__ == "__main__":
     try:
         install_dependencies()
         install_database()
-        #start_token_manager()
-        #start_sftp_monitor()
+        start_token_manager()
+        start_sftp_monitor()
         config = load_config()  # Load configuration
 
         if config.get('smtp', {}).get('smtp_enable', False):

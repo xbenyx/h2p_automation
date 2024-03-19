@@ -118,6 +118,10 @@ def load_files_and_make_api_call():
                                 # Make API call using task data
                                 create_task(task, task_name, hashlistId, hashes_str)
 
+                    # Close the file before deleting
+                    file.close()
+                    # Delete the file after processing
+                    os.remove(file_path)
                 else:
                     print(f"No matching data found in hashmode.json for number {hashmode_number}")
 
@@ -159,7 +163,7 @@ def create_hashlist(hashmode, name, hash):
         response_data = response.json()
         hashlistId = response_data.get('_id')
         # Save data to the database
-        save_to_database(name, hashlistId, hash, hashmode)
+        save_to_database(name, hashlistId, hashmode)
         return hashlistId
     elif response.status_code == 401:
         # Handle 401 Unauthorized status code

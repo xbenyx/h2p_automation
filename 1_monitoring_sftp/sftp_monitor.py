@@ -40,7 +40,7 @@ class SftpMonitor:
                     "remote_directory_get": "/home/..full_path",
                     "remote_directory_post":  "/home/..full_path",
                 },
-                "local_directory": "/home/..full_path",,
+                "local_directory": "/home/..full_path",
                 "sftp_interval": 25
             }
             with open('config.json', 'w') as f:
@@ -54,7 +54,6 @@ class SftpMonitor:
         sftp_config = config['sftp']
         local_dir = config['local_directory']
         sftp_interval = config['sftp_interval']
-
         while True:
             self.logger.info("Checking for new files...")
             time.sleep(sftp_interval)  # Sleep for sftp_interval seconds
