@@ -7,6 +7,7 @@ import sys
 sys.path.append('./utils')
 from config_utils import load_config, load_token
 import db_utils
+import base64
 
 def load_path_importfiles():
     config = load_config()
@@ -61,7 +62,9 @@ def load_files_and_make_api_call():
                         elif metadata_found:
                             metadata += line + "\n"
                         else:
-                            hashes.append(line)
+                            # Base64 encode the line
+                            encoded_line = base64.b64encode(line.encode()).decode()
+                            hashes.append(encoded_line)
                 # Extract number from metadata
                 for line in metadata.strip().split("\n"):
                     key, value = line.split(":")
@@ -139,7 +142,7 @@ def create_hashlist(hashmode, name, hash):
     data = {
         "name": name,
         "hashTypeId": hashmode,
-        "format": 2,
+        "format": 0,
         "separator": ";",
         "isSalted": False,
         "isHexSalt": False,
